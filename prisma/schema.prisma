@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  oauthTokens    OAuthTokens?
+  processedEmails ProcessedEmail[]
+  draftLogs       DraftLog[]
+}
+
+model OAuthTokens {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  accessToken  String
+  refreshToken String
+  tokenType    String   @default("Bearer")
+  expiresAt    DateTime
+  scope        String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProcessedEmail {
+  id          String   @id @default(cuid())
+  messageId   String   @unique
+  threadId    String
+  userId      String
+  subject     String?
+  sender      String
+  processedAt DateTime @default(now())
+  hasDraft    Boolean  @default(false)
+  skipped     Boolean  @default(false)
+  skipReason  String?
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  draftLogs DraftLog[]
+
+  @@index([userId])
+  @@index([threadId])
+}
+
+model DraftLog {
+  id               String   @id @default(cuid())
+  userId           String
+  processedEmailId String
+  draftId          String   @unique
+  threadId         String
+  subject          String?
+  aiReplyPreview   String?
+  createdAt        DateTime @default(now())
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  processedEmail ProcessedEmail @relation(fields: [processedEmailId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([threadId])
+}
