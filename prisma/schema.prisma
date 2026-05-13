@@ -71,3 +71,10 @@ model DraftLog {
   @@index([userId])
   @@index([threadId])
 }
+
+model AppSettings {
+  id               String   @id @default(cuid())
+  autoDraftEnabled Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

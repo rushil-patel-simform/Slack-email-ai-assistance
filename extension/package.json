@@ -1,0 +1,38 @@
+{
+  "name": "gmail-ai-assistant-extension",
+  "displayName": "Gmail AI Assistant",
+  "version": "1.0.0",
+  "description": "Gmail AI Assistant Chrome Extension",
+  "scripts": {
+    "dev": "./node_modules/.bin/plasmo dev",
+    "build": "./node_modules/.bin/plasmo build",
+    "package": "./node_modules/.bin/plasmo package"
+  },
+  "dependencies": {
+    "plasmo": "^0.90.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.258",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "typescript": "^5.3.3"
+  },
+  "manifest": {
+    "name": "Gmail AI Assistant",
+    "description": "AI-powered Gmail reply assistant",
+    "host_permissions": [
+      "https://mail.google.com/*",
+      "http://localhost:3000/*"
+    ],
+    "permissions": [
+      "tabs",
+      "storage",
+      "activeTab"
+    ],
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self'"
+    }
+  }
+}

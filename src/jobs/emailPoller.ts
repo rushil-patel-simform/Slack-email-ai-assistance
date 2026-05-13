@@ -2,18 +2,34 @@ import { getAuthenticatedClient } from '../auth/googleOAuth';
 import { getValidTokens, getAllConnectedUsers } from '../auth/tokenService';
 import { fetchUnreadEmails, parseGmailMessage, createGmailDraft } from '../gmail/gmailService';
 import { generateEmailReply } from '../ai/promptService';
-import { isAutomatedEmail } from '../utils/emailUtils';
+import { shouldSkipEmail } from '../utils/emailUtils';
+import { isAutoDraftEnabled } from '../settings/settingsService';
 import { prisma } from '../db/prismaClient';
-import { config } from '../config';
 import { logger } from '../utils/logger';
+import { gmail_v1 } from 'googleapis';
 
 /**
- * Processes unread emails for a single user:
- * 1. Fetch unread emails
- * 2. Filter automated/already-processed
- * 3. Generate AI reply
- * 4. Create Gmail draft
- * 5. Record in database
+ * Checks for List-Unsubscribe header — a strong indicator of bulk/marketing email.
+ */
+function hasListUnsubscribe(rawMessage: gmail_v1.Schema$Message): boolean {
+  const headers = rawMessage.payload?.headers ?? [];
+  return headers.some((h) => h.name?.toLowerCase() === 'list-unsubscribe');
+}
+
+/**
+ * Extracts Gmail label IDs from a message.
+ */
+function getLabels(rawMessage: gmail_v1.Schema$Message): string[] {
+  return rawMessage.labelIds ?? [];
+}
+
+/**
+ * Core pipeline for a single user:
+ * 1. Fetch latest 10 unread inbox emails
+ * 2. Apply smart filtering (labels, headers, patterns)
+ * 3. Generate AI reply via OpenAI
+ * 4. Create Gmail draft in the same thread
+ * 5. Record everything in the database
  */
 async function processEmailsForUser(userId: string): Promise<void> {
   logger.info(`Starting email poll for user: ${userId}`);
@@ -21,14 +37,15 @@ async function processEmailsForUser(userId: string): Promise<void> {
   const tokens = await getValidTokens(userId);
   const auth = getAuthenticatedClient(tokens.accessToken, tokens.refreshToken);
 
-  const rawMessages = await fetchUnreadEmails(auth, config.jobs.maxEmailsPerPoll);
+  // Always fetch latest 10 unread only
+  const rawMessages = await fetchUnreadEmails(auth, 10);
   logger.info(`Fetched ${rawMessages.length} unread messages for user ${userId}`);
 
   for (const rawMessage of rawMessages) {
     const messageId = rawMessage.id;
     if (!messageId) continue;
 
-    // Check if already processed
+    // Skip already-processed emails
     const alreadyProcessed = await prisma.processedEmail.findUnique({
       where: { messageId },
     });
@@ -43,9 +60,15 @@ async function processEmailsForUser(userId: string): Promise<void> {
       continue;
     }
 
-    // Filter automated/no-reply emails
-    if (isAutomatedEmail(parsed.sender, parsed.subject)) {
-      logger.info(`Skipping automated email from ${parsed.senderEmail}: "${parsed.subject}"`);
+    // Run comprehensive filter: labels + List-Unsubscribe + sender/subject patterns
+    const labels = getLabels(rawMessage);
+    const listUnsub = hasListUnsubscribe(rawMessage);
+    const filterResult = shouldSkipEmail(parsed.sender, parsed.subject, labels, listUnsub);
+
+    if (filterResult.skip) {
+      logger.info(
+        `Skipping email from ${parsed.senderEmail}: "${parsed.subject}" [${filterResult.reason}]`,
+      );
       await prisma.processedEmail.create({
         data: {
           messageId: parsed.messageId,
@@ -54,22 +77,18 @@ async function processEmailsForUser(userId: string): Promise<void> {
           subject: parsed.subject,
           sender: parsed.senderEmail,
           skipped: true,
-          skipReason: 'automated_email',
+          skipReason: filterResult.reason ?? 'filtered',
         },
       });
       continue;
     }
 
-    logger.info(`Processing email: "${parsed.subject}" from ${parsed.senderEmail}`);
+    logger.info(`Processing important email: "${parsed.subject}" from ${parsed.senderEmail}`);
 
     try {
-      // Generate AI reply
       const aiReply = await generateEmailReply(parsed);
-
-      // Create Gmail draft
       const draft = await createGmailDraft(auth, parsed, aiReply);
 
-      // Record processed email
       const processedEmail = await prisma.processedEmail.create({
         data: {
           messageId: parsed.messageId,
@@ -81,7 +100,6 @@ async function processEmailsForUser(userId: string): Promise<void> {
         },
       });
 
-      // Record draft log
       await prisma.draftLog.create({
         data: {
           userId,
@@ -93,10 +111,9 @@ async function processEmailsForUser(userId: string): Promise<void> {
         },
       });
 
-      logger.info(`Draft created for email "${parsed.subject}" → draftId: ${draft.draftId}`);
+      logger.info(`Draft created for "${parsed.subject}" → draftId: ${draft.draftId}`);
     } catch (err) {
       logger.error(`Failed to process email ${messageId}`, { err });
-      // Still mark as processed to avoid retry loops on permanent failures
       await prisma.processedEmail.create({
         data: {
           messageId: parsed.messageId,
@@ -115,10 +132,18 @@ async function processEmailsForUser(userId: string): Promise<void> {
 }
 
 /**
- * Main poller entry point — processes all connected users.
+ * Main poller entry point.
+ * Checks auto-draft flag first — skips all processing if disabled.
  */
 export async function pollAllUsers(): Promise<void> {
   logger.info('=== Email poll job started ===');
+
+  // Respect the auto-draft toggle from AppSettings
+  const autoDraftOn = await isAutoDraftEnabled();
+  if (!autoDraftOn) {
+    logger.info('Auto-draft is DISABLED — skipping poll.');
+    return;
+  }
 
   const userIds = await getAllConnectedUsers();
   if (userIds.length === 0) {
