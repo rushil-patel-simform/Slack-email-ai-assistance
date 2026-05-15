@@ -78,3 +78,86 @@ model AppSettings {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+
+// ─── Slack Models ──────────────────────────────────────────────
+
+model SlackWorkspace {
+  id          String   @id @default(cuid())
+  teamId      String   @unique   // Slack team/workspace ID (e.g. T0123ABC)
+  teamName    String
+  botUserId   String             // Bot's own user ID — used to filter self-replies
+  botToken    String             // xoxb-... bot token
+  scope       String             // comma-separated granted scopes
+  userToken   String?            // xoxp-... personal user token — for reading their DMs/channels
+  slackUserId String?            // real Slack user ID of the connected person
+  lastDMCheckAt DateTime?        // timestamp of last DM poll for this user
+  installedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  processedMessages SlackProcessedMessage[]
+  replyLogs         SlackReplyLog[]
+
+  @@index([teamId])
+}
+
+model SlackProcessedMessage {
+  id          String   @id @default(cuid())
+  messageTs   String                        // Slack message timestamp (unique message ID)
+  channelId   String
+  teamId      String
+  userId      String                        // Slack user ID who sent the message
+  text        String?
+  processedAt DateTime @default(now())
+  replied     Boolean  @default(false)
+  skipped     Boolean  @default(false)
+  skipReason  String?
+
+  workspace SlackWorkspace @relation(fields: [teamId], references: [teamId], onDelete: Cascade)
+  replyLog  SlackReplyLog?
+
+  @@unique([messageTs, channelId])
+  @@index([teamId])
+  @@index([channelId])
+}
+
+model SlackReplyLog {
+  id                 String   @id @default(cuid())
+  teamId             String
+  channelId          String
+  messageTs          String                   // original message ts
+  replyTs            String                   // our reply message ts
+  aiReplyPreview     String?
+  createdAt          DateTime @default(now())
+  processedMessageId String   @unique
+
+  workspace        SlackWorkspace        @relation(fields: [teamId], references: [teamId], onDelete: Cascade)
+  processedMessage SlackProcessedMessage @relation(fields: [processedMessageId], references: [id], onDelete: Cascade)
+
+  @@index([teamId])
+}
+
+model SlackSettings {
+  id               String   @id @default("global")
+  autoReplyEnabled Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model SlackDraft {
+  id           String   @id @default(cuid())
+  teamId       String
+  channelId    String
+  messageTs    String
+  threadTs     String?
+  fromUserId   String
+  fromName     String
+  originalText String
+  draftText    String
+  status       String   @default("pending")   // pending | sent | dismissed
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([messageTs, channelId])
+  @@index([teamId])
+  @@index([status])
+}

@@ -8,16 +8,13 @@ import healthRoutes from './routes/healthRoutes';
 import draftRoutes from './routes/draftRoutes';
 import settingsRoutes from './routes/settingsRoutes';
 import generateDraftRoute from './routes/generateDraftRoute';
+import slackRoutes from './slack/routes/slackRoutes';
 
 const app = express();
 
 // ── CORS ──────────────────────────────────────────────────────
-// Allow Chrome extension content scripts (from mail.google.com or
-// chrome-extension:// origins) to call the backend.
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. curl, Postman) and any
-    // chrome-extension://* or https://mail.google.com origin.
     if (
       !origin ||
       origin.startsWith('chrome-extension://') ||
@@ -42,12 +39,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
 // ── Routes ────────────────────────────────────────────────────
-app.use('/health', healthRoutes);
-app.use('/auth', authRoutes);
-app.use('/emails', emailRoutes);
-app.use('/drafts', draftRoutes);
-app.use('/settings', settingsRoutes);
-app.use('/generate-draft', generateDraftRoute);
+app.use('/health',          healthRoutes);
+app.use('/auth',            authRoutes);
+app.use('/emails',          emailRoutes);
+app.use('/drafts',          draftRoutes);
+app.use('/settings',        settingsRoutes);
+app.use('/generate-draft',  generateDraftRoute);
+app.use('/slack',           slackRoutes);
 
 // ── 404 Handler ───────────────────────────────────────────────
 app.use(notFoundHandler);

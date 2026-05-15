@@ -15,7 +15,9 @@
     "ext:build": "cd extension && npm run build"
   },
   "dependencies": {
-    "@prisma/client": "^5.10.0",
+    "@prisma/client": "^5.22.0",
+    "@slack/bolt": "^4.7.2",
+    "@slack/web-api": "^7.15.2",
     "axios": "^1.6.7",
     "cors": "^2.8.6",
     "dotenv": "^16.4.5",

@@ -37,4 +37,12 @@ export const config = {
     pollIntervalCron: process.env['POLL_CRON'] ?? '* * * * *', // every minute
     maxEmailsPerPoll: parseInt(process.env['MAX_EMAILS_PER_POLL'] ?? '10', 10),
   },
+  slack: {
+    clientId:        process.env['SLACK_CLIENT_ID']        ?? '',
+    clientSecret:    process.env['SLACK_CLIENT_SECRET']    ?? '',
+    signingSecret:   process.env['SLACK_SIGNING_SECRET']   ?? '',
+    redirectUri:     process.env['SLACK_REDIRECT_URI']     ?? 'http://localhost:3000/slack/oauth/callback',
+    appToken:        process.env['SLACK_APP_TOKEN']        ?? '',   // xapp-... Socket Mode
+    botToken:        process.env['SLACK_BOT_TOKEN']        ?? '',   // xoxb-... direct bot token
+  },
 } as const;
