@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Email & Slack Assistant — Training Session</title>
+  <style>
+    /* ── Global Reset & Print Setup ─────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @page {
+      size: A4;
+      margin: 18mm 15mm;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #1a1a2e;
+      background: #f4f6fb;
+    }
+
+    /* ── Page Wrapper ────────────────────────────────────────── */
+    .page {
+      max-width: 870px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 0;
+    }
+
+    /* ── Cover Page ──────────────────────────────────────────── */
+    .cover {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 45%, #0f3460 100%);
+      color: #fff;
+      padding: 80px 60px 60px;
+      text-align: center;
+      page-break-after: always;
+      min-height: 297mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cover .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 30px;
+      padding: 6px 20px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+      color: #a8d8ea;
+    }
+
+    .cover h1 {
+      font-size: 38px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .cover h1 span { color: #e94560; }
+
+    .cover .subtitle {
+      font-size: 16px;
+      color: rgba(255,255,255,0.7);
+      max-width: 520px;
+      margin: 0 auto 48px;
+    }
+
+    .cover .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 60px;
+    }
+
+    .cover .meta-card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 18px 12px;
+    }
+
+    .cover .meta-card .label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+    }
+
+    .cover .meta-card .value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .cover .tech-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      max-width: 560px;
+    }
+
+    .cover .pill {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 11px;
+      color: #e0e0e0;
+    }
+
+    /* ── Section Break Page ──────────────────────────────────── */
+    .section-cover {
+      background: linear-gradient(120deg, #0f3460, #e94560);
+      color: #fff;
+      padding: 0 60px;
+      page-break-before: always;
+      page-break-after: always;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .section-cover .sec-num {
+      font-size: 72px;
+      font-weight: 900;
+      opacity: 0.15;
+      line-height: 1;
+      margin-bottom: -10px;
+    }
+
+    .section-cover h2 {
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .section-cover p {
+      opacity: 0.8;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    /* ── Content Pages ───────────────────────────────────────── */
+    .content-page {
+      padding: 50px 55px;
+      page-break-after: always;
+    }
+
+    .content-page:last-child { page-break-after: auto; }
+
+    /* ── Headings ────────────────────────────────────────────── */
+    h2.page-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f3460;
+      border-bottom: 3px solid #e94560;
+      padding-bottom: 10px;
+      margin-bottom: 24px;
+    }
+
+    h3.sub-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f3460;
+      margin: 22px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3.sub-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: #e94560;
+      border-radius: 2px;
+    }
+
+    /* ── Info Cards ──────────────────────────────────────────── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin: 14px 0;
+    }
+
+    .card-grid.three { grid-template-columns: repeat(3, 1fr); }
+
+    .card {
+      background: #f8f9fe;
+      border: 1px solid #e2e6f0;
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .card .card-icon {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .card .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f3460;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card .card-body {
+      font-size: 12px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    /* ── Highlight Box ───────────────────────────────────────── */
+    .highlight-box {
+      border-left: 4px solid #e94560;
+      background: #fff5f7;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 14px 0;
+    }
+
+    .highlight-box.blue {
+      border-left-color: #0f3460;
+      background: #f0f4ff;
+    }
+
+    .highlight-box.green {
+      border-left-color: #27ae60;
+      background: #f0fff6;
+    }
+
+    .highlight-box.orange {
+      border-left-color: #e67e22;
+      background: #fff8f0;
+    }
+
+    .highlight-box strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f3460;
+      margin-bottom: 4px;
+    }
+
+    .highlight-box p, .highlight-box li { font-size: 12px; color: #444; }
+    .highlight-box ul { padding-left: 16px; }
+    .highlight-box li { margin-bottom: 3px; }
+
+    /* ── Code Blocks ─────────────────────────────────────────── */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin: 12px 0;
+      overflow: hidden;
+    }
+
+    .code-block .code-header {
+      font-size: 10px;
+      color: #a8d8ea;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 6px;
+    }
+
+    .code-block pre {
+      font-family: 'Courier New', 'Consolas', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      color: #e0e0e0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .code-block .kw  { color: #cc99cd; }
+    .code-block .str { color: #7ec899; }
+    .code-block .cmt { color: #999; font-style: italic; }
+    .code-block .fn  { color: #6fb3f2; }
+    .code-block .num { color: #f08d49; }
+
+    /* ── Flow Diagram ────────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 16px 0;
+    }
+
+    .flow-step {
+      background: #0f3460;
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      min-width: 90px;
+      flex: 1;
+    }
+
+    .flow-step .step-num {
+      display: block;
+      font-size: 9px;
+      opacity: 0.6;
+      margin-bottom: 3px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .flow-arrow {
+      font-size: 18px;
+      color: #e94560;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+
+    /* ── Tables ──────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin: 14px 0;
+    }
+
+    th {
+      background: #0f3460;
+      color: #fff;
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.3px;
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e8ecf4;
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td { background: #f8f9fe; }
+
+    td code {
+      background: #e8ecf4;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 10px;
+      font-family: 'Courier New', monospace;
+      color: #0f3460;
+    }
+
+    /* ── Status / Tag Pills ──────────────────────────────────── */
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .tag.green  { background: #d4edda; color: #155724; }
+    .tag.red    { background: #f8d7da; color: #721c24; }
+    .tag.blue   { background: #cce5ff; color: #004085; }
+    .tag.orange { background: #fff3cd; color: #856404; }
+    .tag.purple { background: #e2d9f3; color: #4b1a8a; }
+
+    /* ── Ordered Step List ───────────────────────────────────── */
+    .step-list { list-style: none; counter-reset: steps; margin: 12px 0; }
+
+    .step-list li {
+      counter-increment: steps;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: #333;
+    }
+
+    .step-list li::before {
+      content: counter(steps);
+      background: #e94560;
+      color: #fff;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── Check List ──────────────────────────────────────────── */
+    .check-list { list-style: none; margin: 10px 0; }
+
+    .check-list li {
+      padding: 5px 0 5px 26px;
+      position: relative;
+      font-size: 12px;
+      color: #333;
+      border-bottom: 1px dashed #eee;
+    }
+
+    .check-list li:last-child { border-bottom: none; }
+
+    .check-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #27ae60;
+      font-weight: 700;
+    }
+
+    /* ── Folder Tree ─────────────────────────────────────────── */
+    .tree {
+      font-family: 'Courier New', monospace;
+      font-size: 11.5px;
+      background: #f8f9fe;
+      border: 1px solid #e2e6f0;
+      border-radius: 8px;
+      padding: 16px 20px;
+      line-height: 1.8;
+      color: #333;
+    }
+
+    .tree .dir  { color: #0f3460; font-weight: 700; }
+    .tree .file { color: #444; }
+    .tree .ann  { color: #999; font-style: italic; font-size: 10px; }
+
+    /* ── Two-column layout ───────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin: 14px 0;
+    }
+
+    /* ── Q&A Box ─────────────────────────────────────────────── */
+    .qa {
+      border: 1px solid #e2e6f0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+
+    .qa .q {
+      background: #f0f4ff;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f3460;
+      border-bottom: 1px solid #e2e6f0;
+    }
+
+    .qa .q::before { content: 'Q: '; color: #e94560; }
+
+    .qa .a {
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #444;
+    }
+
+    .qa .a::before { content: 'A: '; font-weight: 700; color: #27ae60; }
+
+    /* ── Page Footer ─────────────────────────────────────────── */
+    .page-footer {
+      text-align: center;
+      padding: 18px;
+      font-size: 10px;
+      color: #aaa;
+      border-top: 1px solid #eee;
+      page-break-after: always;
+    }
+
+    .page-footer:last-child { page-break-after: auto; }
+
+    /* ── Print tweaks ────────────────────────────────────────── */
+    @media print {
+      body { background: #fff; }
+      .page { max-width: 100%; }
+      .section-cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .cover         { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .code-block    { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      th             { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .tag.green, .tag.blue, .tag.orange, .tag.red, .tag.purple {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     COVER PAGE
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="badge">Internal Training Document · May 2026</div>
+  <h1>AI Email &amp; <span>Slack</span><br>Assistant</h1>
+  <p class="subtitle">
+    A production-ready AI automation system that reads your Gmail inbox &amp;
+    Slack workspace, then generates context-aware draft replies for you —
+    completely hands-free.
+  </p>
+
+  <div class="meta-grid">
+    <div class="meta-card">
+      <div class="label">Prepared By</div>
+      <div class="value">Rushil Patel</div>
+    </div>
+    <div class="meta-card">
+      <div class="label">Organisation</div>
+      <div class="value">Simform Solutions</div>
+    </div>
+    <div class="meta-card">
+      <div class="label">Session Date</div>
+      <div class="value">May 18, 2026</div>
+    </div>
+  </div>
+
+  <div class="tech-pills">
+    <span class="pill">Node.js + TypeScript</span>
+    <span class="pill">Express.js</span>
+    <span class="pill">Prisma ORM</span>
+    <span class="pill">PostgreSQL</span>
+    <span class="pill">OpenAI GPT-4o</span>
+    <span class="pill">@slack/bolt v3</span>
+    <span class="pill">Gmail API</span>
+    <span class="pill">Socket Mode</span>
+    <span class="pill">OAuth 2.0</span>
+    <span class="pill">Chrome Extension</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="content-page">
+  <h2 class="page-title">📋 Table of Contents</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Section</th><th>Topics Covered</th><th>Page</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Project Overview</strong></td><td>What it does, why it exists, key goals</td><td>3</td></tr>
+      <tr><td>2</td><td><strong>System Architecture</strong></td><td>High-level design, data flow, component map</td><td>4</td></tr>
+      <tr><td>3</td><td><strong>Technology Stack</strong></td><td>All libraries, tokens, and external services</td><td>5</td></tr>
+      <tr><td>4</td><td><strong>Project Structure</strong></td><td>Folder layout, file purposes</td><td>6</td></tr>
+      <tr><td>5</td><td><strong>Gmail Integration</strong></td><td>OAuth, email filtering, dedup, AI drafts</td><td>7–8</td></tr>
+      <tr><td>6</td><td><strong>Slack Integration</strong></td><td>Socket Mode, DM Poller, Channel Poller, draft delivery</td><td>9–11</td></tr>
+      <tr><td>7</td><td><strong>AI Draft Generation</strong></td><td>OpenAI prompts, context building, GPT-4o</td><td>12</td></tr>
+      <tr><td>8</td><td><strong>Database Schema</strong></td><td>Prisma models, relationships, dedup strategy</td><td>13</td></tr>
+      <tr><td>9</td><td><strong>API Endpoints</strong></td><td>All REST routes, usage</td><td>14</td></tr>
+      <tr><td>10</td><td><strong>Environment Setup</strong></td><td>.env variables, prerequisites</td><td>15</td></tr>
+      <tr><td>11</td><td><strong>Running the Project</strong></td><td>Dev, build, prod commands</td><td>16</td></tr>
+      <tr><td>12</td><td><strong>Common Issues &amp; Q&amp;A</strong></td><td>Troubleshooting, known gotchas</td><td>17</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box blue">
+    <strong>🎯 Session Goals</strong>
+    <ul>
+      <li>Understand the full architecture from frontend (Chrome extension / Slack) to database</li>
+      <li>Know exactly which file handles which responsibility</li>
+      <li>Be able to add a new integration (e.g. Teams, Outlook) following the same patterns</li>
+      <li>Troubleshoot issues independently using the logging system</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 1 — PROJECT OVERVIEW
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">01</div>
+  <h2>Project Overview</h2>
+  <p>What the system does, the problem it solves, and the core user experience</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">01 — Project Overview</h2>
+
+  <h3 class="sub-title">What problem does this solve?</h3>
+  <p style="font-size:13px; color:#444; margin-bottom:14px;">
+    Knowledge workers spend a significant part of their day writing repetitive replies to emails and
+    Slack messages. This system monitors your Gmail inbox and Slack workspace in real-time and
+    generates an AI-powered draft reply for every message you receive — ready to review, tweak, and
+    send in seconds.
+  </p>
+
+  <div class="card-grid three">
+    <div class="card">
+      <div class="card-icon">📧</div>
+      <div class="card-title">Gmail Drafts</div>
+      <div class="card-body">Polls your inbox every minute. Filters promotional / automated mail. Creates a Gmail draft in the same thread using GPT-4o.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💬</div>
+      <div class="card-title">Slack DM Drafts</div>
+      <div class="card-body">Polls every 30 seconds for new direct messages sent to you. Delivers an AI draft privately via the bot DM.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📢</div>
+      <div class="card-title">Slack Channel Drafts</div>
+      <div class="card-body">Polls every 30 seconds for new messages in channels you belong to. No need to invite the bot — uses your personal token.</div>
+    </div>
+  </div>
+
+  <h3 class="sub-title">Core User Experience</h3>
+
+  <div class="flow">
+    <div class="flow-step"><span class="step-num">Step 1</span>Someone sends you a message</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Step 2</span>System detects it (poller / event)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Step 3</span>GPT-4o generates a draft reply</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Step 4</span>Draft delivered to you privately</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Step 5</span>You copy, adjust &amp; send</div>
+  </div>
+
+  <h3 class="sub-title">Key Design Principles</h3>
+  <ul class="check-list">
+    <li><strong>Non-intrusive:</strong> The bot never sends anything on your behalf. It only creates drafts for you to review.</li>
+    <li><strong>Zero false positives:</strong> Smart filtering means only real human-to-human messages get drafted.</li>
+    <li><strong>Deduplication:</strong> Every message is processed exactly once — no duplicate drafts ever.</li>
+    <li><strong>Context-aware:</strong> The AI reads conversation history and thread replies before generating a draft.</li>
+    <li><strong>Multi-user ready:</strong> Multiple users can connect their own Gmail / Slack accounts via OAuth.</li>
+    <li><strong>No public URL needed:</strong> Slack uses Socket Mode (WebSocket) — no ngrok, no tunnels.</li>
+  </ul>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 2 — ARCHITECTURE
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">02</div>
+  <h2>System Architecture</h2>
+  <p>High-level design, data flow between components, and integration points</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">02 — System Architecture</h2>
+
+  <h3 class="sub-title">High-Level Architecture Diagram</h3>
+
+  <div style="border:2px solid #e2e6f0; border-radius:12px; padding:24px; background:#f8f9fe; margin:14px 0; font-size:11.5px; font-family: 'Courier New', monospace; line-height:2.0; color:#333;">
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                     EXTERNAL SERVICES                           │
+│                                                                 │
+│   ┌──────────┐    ┌─────────────┐    ┌──────────────────────┐  │
+│   │  Gmail   │    │  Slack API  │    │   OpenAI GPT-4o      │  │
+│   │   API    │    │ (Socket Mode│    │   (AI Draft Engine)  │  │
+│   └────┬─────┘    │  + REST)    │    └──────────┬───────────┘  │
+│        │          └──────┬──────┘               │              │
+└────────┼─────────────────┼─────────────────────┼──────────────┘
+         │                 │                      │
+         ▼                 ▼                      │
+┌─────────────────────────────────────────────────────────────────┐
+│                    EXPRESS SERVER (:3000)                        │
+│                                                                 │
+│  ┌──────────────┐  ┌───────────────────┐  ┌─────────────────┐  │
+│  │ Email Poller │  │  Slack Bolt App   │  │  REST API       │  │
+│  │ (cron 1 min) │  │  (Socket Mode)    │  │  /auth, /slack  │  │
+│  └──────┬───────┘  │                   │  │  /settings      │  │
+│         │          │  ┌─────────────┐  │  └────────────────┘  │
+│         │          │  │  DM Poller  │  │                       │
+│         │          │  │  (30s tick) │  │                       │
+│         │          │  ├─────────────┤  │                       │
+│         │          │  │  Channel    │  │                       │
+│         │          │  │  Poller     │  │                       │
+│         │          │  │  (30s tick) │  │                       │
+│         │          │  └─────────────┘  │                       │
+│         │          └───────────────────┘                       │
+│         │                   │                                  │
+│         └─────────┬─────────┘                                  │
+│                   ▼                                             │
+│           ┌───────────────┐                                     │
+│           │  Draft Helper │ ◄───── OpenAI API                  │
+│           │ (AI + Delivery│                                     │
+│           └───────┬───────┘                                     │
+└───────────────────┼─────────────────────────────────────────────┘
+                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    POSTGRESQL DATABASE                           │
+│  Users · Tokens · SlackWorkspace · SlackDraft                   │
+│  ProcessedEmail · DraftLog · ProcessedSlackMessage              │
+└─────────────────────────────────────────────────────────────────┘</pre>
+  </div>
+
+  <h3 class="sub-title">Two Separate Token Types (Critical Concept)</h3>
+
+  <div class="two-col">
+    <div class="highlight-box blue">
+      <strong>🤖 Bot Token (xoxb-…)</strong>
+      <ul>
+        <li>Used to <em>send</em> messages as the AI Assistant bot</li>
+        <li>Delivers draft notifications via bot DM to you</li>
+        <li>Stored in <code>.env</code> as <code>SLACK_BOT_TOKEN</code></li>
+        <li>One token for the whole workspace</li>
+      </ul>
+    </div>
+    <div class="highlight-box orange">
+      <strong>👤 User Token (xoxp-…)</strong>
+      <ul>
+        <li>Used to <em>read</em> messages on behalf of a user</li>
+        <li>Read DMs, channel history, user profile</li>
+        <li>Stored in DB per workspace (via OAuth <code>/slack/connect</code>)</li>
+        <li>One token per connected Slack user</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 3 — TECH STACK
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">03</div>
+  <h2>Technology Stack</h2>
+  <p>Every library, service, and credential the system depends on</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">03 — Technology Stack</h2>
+
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="tag blue">Runtime</span></td><td>Node.js</td><td>18+</td><td>Server runtime environment</td></tr>
+      <tr><td><span class="tag blue">Language</span></td><td>TypeScript</td><td>5.x</td><td>Type-safe backend code</td></tr>
+      <tr><td><span class="tag blue">Framework</span></td><td>Express.js</td><td>4.x</td><td>HTTP server &amp; REST API routing</td></tr>
+      <tr><td><span class="tag purple">Database</span></td><td>PostgreSQL</td><td>15+</td><td>Primary data store</td></tr>
+      <tr><td><span class="tag purple">ORM</span></td><td>Prisma</td><td>5.22</td><td>Type-safe DB queries, migrations, schema</td></tr>
+      <tr><td><span class="tag green">AI</span></td><td>OpenAI GPT-4o</td><td>Latest</td><td>Draft generation from message context</td></tr>
+      <tr><td><span class="tag orange">Slack</span></td><td>@slack/bolt</td><td>v3</td><td>Slack app framework — events, Socket Mode</td></tr>
+      <tr><td><span class="tag orange">Slack</span></td><td>@slack/web-api</td><td>v7</td><td>Raw Slack REST API calls (read history, DMs)</td></tr>
+      <tr><td><span class="tag red">Email</span></td><td>googleapis</td><td>v140</td><td>Gmail API — read inbox, create drafts</td></tr>
+      <tr><td><span class="tag red">Auth</span></td><td>Google OAuth 2.0</td><td>—</td><td>Gmail authorisation — access + refresh tokens</td></tr>
+      <tr><td><span class="tag blue">Scheduler</span></td><td>node-cron</td><td>3.x</td><td>Email poller runs on a 1-minute cron</td></tr>
+      <tr><td><span class="tag blue">Dev</span></td><td>nodemon + ts-node</td><td>—</td><td>Auto-restart on file changes during development</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub-title">Slack Credential Types Explained</h3>
+
+  <table>
+    <thead>
+      <tr><th>Token Prefix</th><th>Name</th><th>Where Used</th><th>Scope</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>xoxb-</code></td><td>Bot Token</td><td><code>.env SLACK_BOT_TOKEN</code></td><td>Send messages, open DMs as bot</td></tr>
+      <tr><td><code>xoxp-</code></td><td>User Token</td><td>Database per workspace</td><td>Read channels/DMs as a real user</td></tr>
+      <tr><td><code>xapp-</code></td><td>App-Level Token</td><td><code>.env SLACK_APP_TOKEN</code></td><td>Socket Mode WebSocket connection only</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 4 — PROJECT STRUCTURE
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">04</div>
+  <h2>Project Structure</h2>
+  <p>Complete folder layout and the single responsibility of every key file</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">04 — Project Structure</h2>
+
+  <div class="tree">
+<span class="dir">src/</span>
+├── <span class="dir">ai/</span>
+│   ├── <span class="file">promptService.ts</span>         <span class="ann">← Gmail AI prompt builder + OpenAI call</span>
+│   └── <span class="file">slackPromptService.ts</span>    <span class="ann">← Slack AI prompt builder + OpenAI call</span>
+│
+├── <span class="dir">auth/</span>
+│   ├── <span class="file">googleOAuth.ts</span>           <span class="ann">← Google OAuth client factory</span>
+│   └── <span class="file">tokenService.ts</span>          <span class="ann">← Get/refresh Gmail access tokens</span>
+│
+├── <span class="dir">db/</span>
+│   └── <span class="file">prismaClient.ts</span>          <span class="ann">← Singleton Prisma client</span>
+│
+├── <span class="dir">gmail/</span>
+│   └── <span class="file">gmailService.ts</span>          <span class="ann">← Fetch inbox, parse messages, create drafts</span>
+│
+├── <span class="dir">jobs/</span>
+│   └── <span class="file">emailPoller.ts</span>           <span class="ann">← Cron job: poll Gmail every 1 minute</span>
+│
+├── <span class="dir">routes/</span>
+│   ├── <span class="file">authRoutes.ts</span>            <span class="ann">← /auth/google OAuth endpoints</span>
+│   └── <span class="file">settingsRoutes.ts</span>        <span class="ann">← /settings on/off toggle</span>
+│
+├── <span class="dir">settings/</span>
+│   └── <span class="file">settingsService.ts</span>       <span class="ann">← Read/write auto-draft enabled flag</span>
+│
+├── <span class="dir">slack/</span>
+│   ├── <span class="file">slackApp.ts</span>              <span class="ann">← Boot Slack Bolt app, start pollers</span>
+│   ├── <span class="dir">ai/</span>
+│   │   └── <span class="file">slackPromptService.ts</span>  <span class="ann">← GPT-4o prompt for Slack replies</span>
+│   ├── <span class="dir">auth/</span>
+│   │   └── <span class="file">slackAuthRoutes.ts</span>    <span class="ann">← /slack/connect OAuth flow</span>
+│   ├── <span class="dir">events/</span>
+│   │   └── <span class="file">slackEventHandlers.ts</span> <span class="ann">← Bolt event handlers (fallback for bot-in-channel)</span>
+│   ├── <span class="dir">routes/</span>
+│   │   └── <span class="file">slackRoutes.ts</span>        <span class="ann">← /slack/replies, /workspaces REST endpoints</span>
+│   └── <span class="dir">services/</span>
+│       ├── <span class="file">slackDMPoller.ts</span>      <span class="ann">← 30s poller: new DMs → draft</span>
+│       ├── <span class="file">slackChannelPoller.ts</span> <span class="ann">← 30s poller: new channel msgs → draft</span>
+│       ├── <span class="file">slackDraftHelper.ts</span>   <span class="ann">← Core: build context, call AI, deliver DM</span>
+│       ├── <span class="file">slackMessageService.ts</span><span class="ann">← Dedup: isAlreadyProcessed / markProcessed</span>
+│       └── <span class="file">slackSettingsService.ts</span><span class="ann">← isAutoReplyEnabled check</span>
+│
+├── <span class="dir">utils/</span>
+│   ├── <span class="file">emailUtils.ts</span>            <span class="ann">← Email filter rules (sender, subject, labels)</span>
+│   └── <span class="file">logger.ts</span>               <span class="ann">← Winston structured logger</span>
+│
+├── <span class="file">app.ts</span>                     <span class="ann">← Express app factory, middleware, routes</span>
+├── <span class="file">config/index.ts</span>            <span class="ann">← All env-var config in one place</span>
+└── <span class="file">index.ts</span>                   <span class="ann">← Entry point: connect DB, start Express + Slack</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 5 — GMAIL INTEGRATION
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">05</div>
+  <h2>Gmail Integration</h2>
+  <p>OAuth flow, email filtering, deduplication, and AI draft creation</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">05 — Gmail Integration (Part 1): OAuth &amp; Polling</h2>
+
+  <h3 class="sub-title">Gmail OAuth Flow</h3>
+  <ol class="step-list">
+    <li>User visits <code>GET /auth/google</code> in browser — redirected to Google consent screen.</li>
+    <li>After consent, Google redirects to <code>GET /auth/google/callback</code> with an auth code.</li>
+    <li>Server exchanges the code for <code>access_token</code> + <code>refresh_token</code>.</li>
+    <li>Tokens saved to the <code>Token</code> table in the DB, linked to the user's Google email (userId).</li>
+    <li>When the access token expires, <code>tokenService.ts</code> automatically refreshes it using the refresh token.</li>
+  </ol>
+
+  <h3 class="sub-title">Email Polling Pipeline (<code>emailPoller.ts</code>)</h3>
+
+  <div class="flow">
+    <div class="flow-step"><span class="step-num">Cron: 1 min</span>Trigger poll</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Gmail API</span>Fetch 30 unread emails</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Dedup #1</span>DB: messageId unique check</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Dedup #2</span>DB: threadId check per user</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Filter</span>emailUtils.ts rules</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">OpenAI</span>Generate draft reply</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Gmail API</span>Create draft in thread</div>
+  </div>
+
+  <h3 class="sub-title">Why Two Layers of Deduplication?</h3>
+  <div class="two-col">
+    <div class="highlight-box green">
+      <strong>Dedup #1 — Message-level (processedEmail table)</strong>
+      <p>A <code>messageId</code> unique constraint in the DB. Even if the poller runs twice, the second attempt fails fast with "already processed" — no duplicate drafts.</p>
+    </div>
+    <div class="highlight-box blue">
+      <strong>Dedup #2 — Thread-level (draftLog table)</strong>
+      <p>Before drafting, we check if a draft already exists for this <code>threadId</code> for this user. Prevents drafts for every reply in a long email chain.</p>
+    </div>
+  </div>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">05 — Gmail Integration (Part 2): Email Filtering</h2>
+
+  <h3 class="sub-title">Why filtering matters</h3>
+  <p style="font-size:12px; color:#444; margin-bottom:14px;">
+    Without filtering, the AI would waste API credits drafting replies to Amazon shipping notifications,
+    GitHub CI build failures, and promotional newsletters. The filter is layered — any one rule can
+    reject an email:
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Filter Layer</th><th>What it catches</th><th>File</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><strong>Gmail Label</strong></td>
+        <td>Rejects <code>CATEGORY_PROMOTIONS</code> &amp; <code>SPAM</code> — Gmail's own ML classifier. Very reliable for ads &amp; spam.</td>
+        <td><code>emailUtils.ts</code></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>List-Unsubscribe Header</strong></td>
+        <td>Any email with a <code>List-Unsubscribe</code> header is bulk mail. Real human emails never have this.</td>
+        <td><code>emailPoller.ts</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>Sender Pattern</strong></td>
+        <td>Regex patterns: <code>no-reply@</code>, <code>noreply</code>, <code>mailer-daemon</code>, <code>newsletter@</code>, <code>notifications@</code>, etc.</td>
+        <td><code>emailUtils.ts</code></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>Subject Pattern</strong></td>
+        <td><code>[automated]</code>, <code>% off</code>, <code>flash sale</code>, <code>build failed/passed</code>, <code>dependabot</code>, shopping recommendations, etc.</td>
+        <td><code>emailUtils.ts</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box green">
+    <strong>✅ What is intentionally NOT filtered</strong>
+    <ul>
+      <li><code>CATEGORY_UPDATES</code> — Real transactional emails (bank statements, invoice from a person) land here</li>
+      <li><code>CATEGORY_SOCIAL</code> — LinkedIn messages, real social notifications with a human behind them</li>
+      <li>Company domain emails (e.g., <code>john@company.com</code>) — real people</li>
+    </ul>
+  </div>
+
+  <h3 class="sub-title">Sample: Email Filter Code Flow</h3>
+
+  <div class="code-block">
+    <div class="code-header">src/utils/emailUtils.ts — shouldSkipEmail()</div>
+    <pre><span class="kw">export function</span> <span class="fn">shouldSkipEmail</span>(
+  sender: <span class="kw">string</span>, subject: <span class="kw">string</span>,
+  labels: <span class="kw">string</span>[] = [], hasListUnsubscribe: <span class="kw">boolean</span> = <span class="kw">false</span>
+): EmailFilterResult {
+
+  <span class="cmt">// 1. Gmail category labels (CATEGORY_PROMOTIONS, SPAM)</span>
+  <span class="kw">for</span> (<span class="kw">const</span> label <span class="kw">of</span> labels) {
+    <span class="kw">if</span> (SKIP_LABEL_PATTERNS.<span class="fn">some</span>(p => p.<span class="fn">test</span>(label)))
+      <span class="kw">return</span> { skip: <span class="kw">true</span>, reason: <span class="str">`gmail_label:${label}`</span> };
+  }
+
+  <span class="cmt">// 2. Bulk mail indicator header</span>
+  <span class="kw">if</span> (hasListUnsubscribe) <span class="kw">return</span> { skip: <span class="kw">true</span>, reason: <span class="str">'list_unsubscribe_header'</span> };
+
+  <span class="cmt">// 3. Sender pattern (no-reply, newsletter@, etc.)</span>
+  <span class="kw">for</span> (<span class="kw">const</span> pattern <span class="kw">of</span> AUTOMATED_SENDER_PATTERNS) {
+    <span class="kw">if</span> (pattern.<span class="fn">test</span>(sender))
+      <span class="kw">return</span> { skip: <span class="kw">true</span>, reason: <span class="str">`sender_pattern`</span> };
+  }
+
+  <span class="cmt">// 4. Subject pattern (flash sale, % off, etc.)</span>
+  <span class="kw">for</span> (<span class="kw">const</span> pattern <span class="kw">of</span> AUTOMATED_SUBJECT_PATTERNS) {
+    <span class="kw">if</span> (pattern.<span class="fn">test</span>(subject))
+      <span class="kw">return</span> { skip: <span class="kw">true</span>, reason: <span class="str">`subject_pattern`</span> };
+  }
+
+  <span class="kw">return</span> { skip: <span class="kw">false</span> }; <span class="cmt">// ← Real email: proceed to AI drafting</span>
+}</pre>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 6 — SLACK INTEGRATION
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">06</div>
+  <h2>Slack Integration</h2>
+  <p>Socket Mode, DM Poller, Channel Poller, and draft delivery explained</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">06 — Slack Integration (Part 1): Connection &amp; Pollers</h2>
+
+  <h3 class="sub-title">Why Socket Mode instead of HTTP webhooks?</h3>
+  <div class="highlight-box blue">
+    <strong>Socket Mode = WebSocket connection from your server TO Slack</strong>
+    <ul>
+      <li>No public URL required — works from localhost, behind firewall, or on a laptop</li>
+      <li>No ngrok, no reverse proxy, no cloud deployment needed for development</li>
+      <li>Slack pushes events over the WebSocket; your server handles them instantly</li>
+      <li>Uses the <code>xapp-</code> App-Level Token for the initial handshake</li>
+    </ul>
+  </div>
+
+  <h3 class="sub-title">Slack Startup Sequence (<code>slackApp.ts</code>)</h3>
+  <ol class="step-list">
+    <li>Check that <code>SLACK_SIGNING_SECRET</code>, <code>SLACK_APP_TOKEN</code>, <code>SLACK_BOT_TOKEN</code> are set.</li>
+    <li>Create a Bolt <code>App</code> instance with <code>socketMode: true</code> and the three credentials.</li>
+    <li>Register Slack event handlers (via <code>slackEventHandlers.ts</code>).</li>
+    <li>Call <code>app.start()</code> — opens WebSocket to Slack.</li>
+    <li>Start <strong>DM Poller</strong> — 30-second interval timer begins.</li>
+    <li>Start <strong>Channel Poller</strong> — 30-second interval timer begins.</li>
+    <li>Call <code>auth.test()</code> to get the workspace ID and save it to the DB.</li>
+  </ol>
+
+  <h3 class="sub-title">DM Poller vs Channel Poller — Comparison</h3>
+
+  <table>
+    <thead>
+      <tr><th>Feature</th><th>DM Poller (<code>slackDMPoller.ts</code>)</th><th>Channel Poller (<code>slackChannelPoller.ts</code>)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Trigger</td><td>Every 30 seconds</td><td>Every 30 seconds</td></tr>
+      <tr><td>Token used to READ</td><td>User token (xoxp-)</td><td>User token (xoxp-)</td></tr>
+      <tr><td>API call</td><td><code>conversations.list({ types: 'im,mpim' })</code></td><td><code>conversations.list({ types: 'public_channel,private_channel' })</code></td></tr>
+      <tr><td>Filter</td><td>Only channels user is member of</td><td>Only channels where <code>is_member: true</code></td></tr>
+      <tr><td>Skip own messages</td><td>Yes — <code>msg.user === workspace.slackUserId</code></td><td>Yes — same check</td></tr>
+      <tr><td>Skip bots/subtypes</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td>Timestamp tracking</td><td><code>workspace.lastDMCheckAt</code> in DB</td><td>In-memory <code>Map&lt;channelId, ts&gt;</code></td></tr>
+      <tr><td>Bot in channel needed?</td><td>No</td><td>No — uses user token</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box orange">
+    <strong>⚠️ Important: Channel Poller does not require bot invitation</strong>
+    <p>Because the channel poller reads history using the <em>user's own xoxp- token</em>, it can see any channel the user is a member of — without ever inviting the bot to those channels. This is the key advantage over Slack event handlers which require the bot to be in the channel.</p>
+  </div>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">06 — Slack Integration (Part 2): Draft Delivery</h2>
+
+  <h3 class="sub-title">The Draft Helper — Core of the Slack Pipeline</h3>
+  <p style="font-size:12px; color:#444; margin-bottom:14px;">
+    <code>slackDraftHelper.ts</code> is called by both pollers and the event handler.
+    It is responsible for the entire pipeline: dedup check → context fetch → AI draft → DB save → deliver via bot DM.
+  </p>
+
+  <div class="flow">
+    <div class="flow-step"><span class="step-num">Input</span>Message details from poller</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Dedup</span>isAlreadyProcessed(ts, channelId)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Context</span>Fetch channel history + thread</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">AI</span>GPT-4o generates reply</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">Save</span>Upsert SlackDraft in DB</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><span class="step-num">DM</span>Bot opens DM → postMessage</div>
+  </div>
+
+  <h3 class="sub-title">What the Draft Delivery Message Looks Like</h3>
+
+  <div style="background:#f8f9fe; border:1px solid #e2e6f0; border-radius:10px; padding:20px; margin:14px 0; font-size:12px; font-family:monospace; line-height:1.8; color:#333;">
+    <strong style="color:#0f3460; font-family:sans-serif; font-size:12px; display:block; margin-bottom:10px;">
+      📬 How it appears in Slack (AI Slack Assistant DM):
+    </strong>
+    📝 <b>New draft ready</b> — #general<br>
+    <b>From:</b> Rushil Shah<br>
+    <b>Their message:</b> <em>"Hey can you send over the updated design mockups by EOD?"</em><br>
+    AI used 8 previous messages + 3 thread replies as context.<br><br>
+    <b>Suggested reply for you to send:</b><br>
+    &gt; Hi Rushil, sure! I'll send over the updated mockups by 5 PM today. Let me know if you need any specific format.<br><br>
+    <em>Copy the reply above → go to #general → paste and send it yourself.</em>
+  </div>
+
+  <h3 class="sub-title">Context Building — How AI gets conversation history</h3>
+  <div class="two-col">
+    <div class="highlight-box blue">
+      <strong>Channel History (fetchHistory)</strong>
+      <ul>
+        <li>Calls <code>conversations.history</code> with <code>latest = messageTs</code></li>
+        <li>Fetches last 15 messages <em>before</em> the new message</li>
+        <li>Resolves user IDs → real names for the AI</li>
+        <li>Filters out join/leave system messages</li>
+      </ul>
+    </div>
+    <div class="highlight-box green">
+      <strong>Thread History (fetchThreadHistory)</strong>
+      <ul>
+        <li>If message is a thread reply, calls <code>conversations.replies</code></li>
+        <li>Fetches the full thread context</li>
+        <li>Excludes the triggering message itself</li>
+        <li>Sent separately as <code>threadHistory</code> to the AI prompt</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 7 — AI DRAFT GENERATION
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">07</div>
+  <h2>AI Draft Generation</h2>
+  <p>How OpenAI GPT-4o generates context-aware draft replies</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">07 — AI Draft Generation</h2>
+
+  <h3 class="sub-title">Prompt Architecture</h3>
+  <p style="font-size:12px; color:#444; margin-bottom:14px;">
+    The AI is given a structured prompt that tells it <em>who you are</em>, <em>who sent the message</em>,
+    <em>what the conversation history is</em>, and <em>what the new message says</em>.
+    This multi-context approach produces far more relevant replies than single-message prompts.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header">Slack Prompt Structure (slackPromptService.ts) — simplified</div>
+    <pre><span class="cmt">// System prompt tells GPT who it's helping</span>
+<span class="kw">const</span> systemPrompt = <span class="str">`You are a helpful assistant that drafts Slack replies
+for ${ownerName}. Write in a professional but friendly tone.
+Keep replies concise (2-4 sentences). Do NOT sign off with a name.`</span>;
+
+<span class="cmt">// User prompt supplies the full context</span>
+<span class="kw">const</span> userPrompt = <span class="str">`
+## Conversation History (${history.length} messages)
+${history.map(m => `${m.senderName}: ${m.text}`).join('\n')}
+
+## Thread Context
+${threadHistory?.map(m => `${m.senderName}: ${m.text}`).join('\n') ?? 'N/A'}
+
+## New Message From ${senderName}
+"${messageText}"
+
+Draft a reply from ${ownerName}'s perspective:
+`</span>;
+
+<span class="cmt">// Single GPT-4o call with temperature 0.7</span>
+<span class="kw">const</span> response = <span class="kw">await</span> openai.chat.completions.<span class="fn">create</span>({
+  model: <span class="str">'gpt-4o'</span>,
+  messages: [
+    { role: <span class="str">'system'</span>, content: systemPrompt },
+    { role: <span class="str">'user'</span>,   content: userPrompt },
+  ],
+  temperature: <span class="num">0.7</span>,
+  max_tokens:  <span class="num">300</span>,
+});</pre>
+  </div>
+
+  <h3 class="sub-title">Prompt Differences: Email vs Slack</h3>
+  <table>
+    <thead>
+      <tr><th>Aspect</th><th>Email (promptService.ts)</th><th>Slack (slackPromptService.ts)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Tone</td><td>Professional, email-appropriate</td><td>Conversational, Slack-friendly</td></tr>
+      <tr><td>Context input</td><td>Full email body + subject</td><td>15 msg history + thread replies</td></tr>
+      <tr><td>Output format</td><td>Full email reply with greeting</td><td>Short 2-4 sentence message</td></tr>
+      <tr><td>Max tokens</td><td>~500</td><td>~300</td></tr>
+      <tr><td>Signature</td><td>Includes sender name sign-off</td><td>No sign-off (Slack norms)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box orange">
+    <strong>⚠️ API Cost Awareness</strong>
+    <ul>
+      <li>Each draft = 1 GPT-4o API call. With filtering working correctly, only real human messages trigger calls.</li>
+      <li>Monitor usage at <a href="https://platform.openai.com/usage" style="color:#0f3460;">platform.openai.com/usage</a></li>
+      <li>Set spending limits in OpenAI dashboard to avoid unexpected charges</li>
+      <li>The email filter and Slack dedup system ensure we never call GPT-4o for the same message twice</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 8 — DATABASE SCHEMA
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">08</div>
+  <h2>Database Schema</h2>
+  <p>Prisma models, relationships, and deduplication strategy</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">08 — Database Schema</h2>
+
+  <div class="code-block">
+    <div class="code-header">prisma/schema.prisma — Key Models</div>
+    <pre><span class="cmt">// Gmail user credentials</span>
+<span class="kw">model</span> <span class="fn">Token</span> {
+  id           String   <span class="kw">@id @default</span>(cuid())
+  userId       String   <span class="cmt">// Google email address</span>
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+}
+
+<span class="cmt">// Slack workspace — one per team</span>
+<span class="kw">model</span> <span class="fn">SlackWorkspace</span> {
+  teamId       String   <span class="kw">@id</span>
+  teamName     String
+  botToken     String   <span class="cmt">// xoxb- — send DMs as bot</span>
+  botUserId    String
+  userToken    String?  <span class="cmt">// xoxp- — read channels as user</span>
+  slackUserId  String?  <span class="cmt">// User's Slack ID (e.g. U0B3RB0GBFC)</span>
+  lastDMCheckAt DateTime? <span class="cmt">// Timestamp for DM poller</span>
+}
+
+<span class="cmt">// Generated Slack drafts</span>
+<span class="kw">model</span> <span class="fn">SlackDraft</span> {
+  id           String   <span class="kw">@id @default</span>(cuid())
+  teamId       String
+  channelId    String
+  messageTs    String   <span class="cmt">// Slack message timestamp (unique ID)</span>
+  threadTs     String?
+  fromUserId   String
+  fromName     String
+  originalText String
+  draftText    String
+  status       String   <span class="kw">@default</span>(<span class="str">"pending"</span>)
+  <span class="kw">@@unique</span>([messageTs, channelId]) <span class="cmt">// ← dedup key</span>
+}
+
+<span class="cmt">// Email dedup — one record per processed Gmail messageId</span>
+<span class="kw">model</span> <span class="fn">ProcessedEmail</span> {
+  id        String   <span class="kw">@id @default</span>(cuid())
+  messageId String   <span class="kw">@unique</span>  <span class="cmt">// ← DB-level dedup</span>
+  userId    String
+  createdAt DateTime <span class="kw">@default</span>(now())
+}
+
+<span class="cmt">// Email draft history</span>
+<span class="kw">model</span> <span class="fn">DraftLog</span> {
+  id       String @id @default(cuid())
+  userId   String
+  threadId String
+  subject  String
+  draftText String
+  createdAt DateTime @default(now())
+  <span class="kw">@@unique</span>([userId, threadId]) <span class="cmt">// ← one draft per thread per user</span>
+}</pre>
+  </div>
+
+  <h3 class="sub-title">Database Commands</h3>
+  <table>
+    <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>npx prisma migrate dev</code></td><td>Apply schema changes and create migration file</td></tr>
+      <tr><td><code>npx prisma db push</code></td><td>Push schema directly without migration (dev only)</td></tr>
+      <tr><td><code>npx prisma studio</code></td><td>Open web UI to browse all tables and records</td></tr>
+      <tr><td><code>npx prisma generate</code></td><td>Regenerate TypeScript types after schema change</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 9 — API ENDPOINTS
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">09</div>
+  <h2>API Endpoints</h2>
+  <p>All REST routes exposed by the Express server</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">09 — API Endpoints</h2>
+
+  <table>
+    <thead>
+      <tr><th>Method</th><th>Route</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="tag blue">GET</span></td><td><code>/health</code></td><td>Health check — returns <code>{ status: "ok" }</code></td></tr>
+      <tr><td><span class="tag blue">GET</span></td><td><code>/auth/google</code></td><td>Start Gmail OAuth — redirects to Google consent</td></tr>
+      <tr><td><span class="tag blue">GET</span></td><td><code>/auth/google/callback</code></td><td>OAuth callback — receives code, saves tokens to DB</td></tr>
+      <tr><td><span class="tag green">POST</span></td><td><code>/settings/auto-draft/enable</code></td><td>Enable Gmail auto-drafting globally</td></tr>
+      <tr><td><span class="tag green">POST</span></td><td><code>/settings/auto-draft/disable</code></td><td>Disable Gmail auto-drafting globally</td></tr>
+      <tr><td><span class="tag blue">GET</span></td><td><code>/settings/auto-draft/status</code></td><td>Check if auto-drafting is currently enabled</td></tr>
+      <tr><td><span class="tag blue">GET</span></td><td><code>/slack/connect</code></td><td>Start Slack user OAuth (saves xoxp- token)</td></tr>
+      <tr><td><span class="tag blue">GET</span></td><td><code>/slack/connect/callback</code></td><td>OAuth callback — saves user token to DB</td></tr>
+      <tr><td><span class="tag blue">GET</span></td><td><code>/slack/workspaces</code></td><td>List all connected Slack workspaces</td></tr>
+      <tr><td><span class="tag blue">GET</span></td><td><code>/slack/replies</code></td><td>List all AI-generated Slack drafts from DB</td></tr>
+      <tr><td><span class="tag green">POST</span></td><td><code>/slack/auto-reply/start</code></td><td>Enable Slack auto-reply</td></tr>
+      <tr><td><span class="tag green">POST</span></td><td><code>/slack/auto-reply/stop</code></td><td>Disable Slack auto-reply</td></tr>
+      <tr><td><span class="tag blue">GET</span></td><td><code>/slack/settings</code></td><td>Get current Slack auto-reply setting</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub-title">First-Time Setup Sequence (after server starts)</h3>
+
+  <ol class="step-list">
+    <li>Open browser → <code>http://localhost:3000/auth/google</code> → Connect Gmail account</li>
+    <li>Open browser → <code>http://localhost:3000/slack/connect</code> → Connect Slack account (gets xoxp- token)</li>
+    <li>POST to <code>/settings/auto-draft/enable</code> → Enable Gmail drafting</li>
+    <li>POST to <code>/slack/auto-reply/start</code> → Enable Slack drafting</li>
+    <li>Both pollers are now active — wait 30 seconds, send yourself a test message!</li>
+  </ol>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 10 — ENVIRONMENT SETUP
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">10</div>
+  <h2>Environment Setup</h2>
+  <p>All required .env variables, prerequisites, and where to get each credential</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">10 — Environment Setup</h2>
+
+  <h3 class="sub-title">Prerequisites</h3>
+  <ul class="check-list">
+    <li>Node.js 18+ installed (<code>node --version</code>)</li>
+    <li>PostgreSQL running locally or on a cloud provider (Railway, Supabase, Neon, etc.)</li>
+    <li>Google Cloud project with Gmail API enabled and OAuth 2.0 credentials created</li>
+    <li>Slack App created at <a href="https://api.slack.com/apps" style="color:#0f3460;">api.slack.com/apps</a> with Socket Mode enabled</li>
+    <li>OpenAI account with an API key and GPT-4o access</li>
+  </ul>
+
+  <h3 class="sub-title">.env File — All Variables</h3>
+
+  <div class="code-block">
+    <div class="code-header">.env</div>
+    <pre><span class="cmt"># ── Server ──────────────────────────────────────────────</span>
+PORT=<span class="num">3000</span>
+NODE_ENV=development
+
+<span class="cmt"># ── Database (PostgreSQL) ────────────────────────────────</span>
+DATABASE_URL=<span class="str">"postgresql://user:password@localhost:5432/Email-slack"</span>
+
+<span class="cmt"># ── Google / Gmail ───────────────────────────────────────</span>
+GOOGLE_CLIENT_ID=<span class="str">"your-google-client-id.apps.googleusercontent.com"</span>
+GOOGLE_CLIENT_SECRET=<span class="str">"your-google-client-secret"</span>
+GOOGLE_REDIRECT_URI=<span class="str">"http://localhost:3000/auth/google/callback"</span>
+
+<span class="cmt"># ── OpenAI ───────────────────────────────────────────────</span>
+OPENAI_API_KEY=<span class="str">"sk-..."</span>
+
+<span class="cmt"># ── Slack ────────────────────────────────────────────────</span>
+SLACK_SIGNING_SECRET=<span class="str">"your-signing-secret"</span>
+SLACK_BOT_TOKEN=<span class="str">"xoxb-..."</span>       <span class="cmt"># Bot token — sends DMs</span>
+SLACK_APP_TOKEN=<span class="str">"xapp-..."</span>       <span class="cmt"># App-level token — Socket Mode</span>
+
+<span class="cmt"># ── Slack OAuth (for /slack/connect user flow) ───────────</span>
+SLACK_CLIENT_ID=<span class="str">"your-slack-client-id"</span>
+SLACK_CLIENT_SECRET=<span class="str">"your-slack-client-secret"</span>
+SLACK_REDIRECT_URI=<span class="str">"http://localhost:3000/slack/connect/callback"</span></pre>
+  </div>
+
+  <h3 class="sub-title">Where to get Slack credentials</h3>
+  <table>
+    <thead><tr><th>Credential</th><th>Where to find it</th></tr></thead>
+    <tbody>
+      <tr><td><code>SLACK_SIGNING_SECRET</code></td><td>api.slack.com/apps → Your App → Basic Information → App Credentials</td></tr>
+      <tr><td><code>SLACK_BOT_TOKEN (xoxb-)</code></td><td>OAuth &amp; Permissions → Bot Token Scopes → Install App</td></tr>
+      <tr><td><code>SLACK_APP_TOKEN (xapp-)</code></td><td>Basic Information → App-Level Tokens → Generate (connections:write scope)</td></tr>
+      <tr><td><code>SLACK_CLIENT_ID/SECRET</code></td><td>Basic Information → App Credentials</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub-title">Required Slack Bot Scopes</h3>
+  <div class="two-col">
+    <div class="highlight-box blue">
+      <strong>Bot Token Scopes (xoxb-)</strong>
+      <ul>
+        <li><code>chat:write</code> — Post messages as bot</li>
+        <li><code>im:write</code> — Open DM channels</li>
+        <li><code>users:read</code> — Look up user display names</li>
+      </ul>
+    </div>
+    <div class="highlight-box orange">
+      <strong>User Token Scopes (xoxp-) — OAuth</strong>
+      <ul>
+        <li><code>channels:history</code> — Read public channel messages</li>
+        <li><code>groups:history</code> — Read private channel messages</li>
+        <li><code>im:history</code> — Read DMs</li>
+        <li><code>channels:read</code>, <code>groups:read</code>, <code>im:read</code> — List conversations</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 11 — RUNNING THE PROJECT
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">11</div>
+  <h2>Running the Project</h2>
+  <p>Development, build, and production commands</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">11 — Running the Project</h2>
+
+  <h3 class="sub-title">Installation</h3>
+
+  <div class="code-block">
+    <div class="code-header">Terminal — Initial Setup</div>
+    <pre><span class="cmt"># 1. Install dependencies</span>
+npm install
+
+<span class="cmt"># 2. Copy environment file and fill in values</span>
+cp .env.example .env
+
+<span class="cmt"># 3. Generate Prisma client types</span>
+npx prisma generate
+
+<span class="cmt"># 4. Apply database migrations</span>
+npx prisma migrate dev --name init
+
+<span class="cmt"># 5. (Optional) Browse database via GUI</span>
+npx prisma studio</pre>
+  </div>
+
+  <h3 class="sub-title">Development Mode (auto-restart on file save)</h3>
+
+  <div class="code-block">
+    <div class="code-header">Terminal</div>
+    <pre><span class="cmt"># Uses nodemon + ts-node — auto-restarts on .ts file changes</span>
+npm run dev
+
+<span class="cmt"># Server will start at http://localhost:3000</span>
+<span class="cmt"># Watch for these lines confirming success:</span>
+<span class="cmt">#   ✅ Slack Socket Mode connected — listening for events</span>
+<span class="cmt">#   📡 Slack DM poller started (interval: 30s)</span>
+<span class="cmt">#   📢 Slack Channel poller started (interval: 30s)</span>
+<span class="cmt">#   📬 Email poller job started</span></pre>
+  </div>
+
+  <h3 class="sub-title">Production Mode (compiled JavaScript)</h3>
+
+  <div class="code-block">
+    <div class="code-header">Terminal</div>
+    <pre><span class="cmt"># Compile TypeScript → JavaScript into dist/</span>
+./node_modules/.bin/tsc --outDir dist
+
+<span class="cmt"># Run compiled output</span>
+node dist/index.js
+
+<span class="cmt"># Or pipe logs to a file</span>
+node dist/index.js > /tmp/app.log 2>&1 &</pre>
+  </div>
+
+  <h3 class="sub-title">Useful Debug Commands</h3>
+
+  <div class="code-block">
+    <div class="code-header">Terminal — Troubleshooting</div>
+    <pre><span class="cmt"># Kill nodemon if port 3000 is already in use</span>
+pkill -9 -f "nodemon|ts-node"
+
+<span class="cmt"># Check what's using port 3000</span>
+lsof -i :3000
+
+<span class="cmt"># Enable Slack auto-reply</span>
+curl -X POST http://localhost:3000/slack/auto-reply/start
+
+<span class="cmt"># Enable Gmail auto-draft</span>
+curl -X POST http://localhost:3000/settings/auto-draft/enable
+
+<span class="cmt"># Check health</span>
+curl http://localhost:3000/health
+
+<span class="cmt"># View connected workspaces</span>
+curl http://localhost:3000/slack/workspaces
+
+<span class="cmt"># Browse database visually</span>
+npx prisma studio</pre>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 12 — COMMON ISSUES & Q&A
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="section-cover">
+  <div class="sec-num">12</div>
+  <h2>Common Issues &amp; Q&amp;A</h2>
+  <p>Troubleshooting guide and answers to the most frequently asked questions</p>
+</div>
+
+<div class="content-page">
+  <h2 class="page-title">12 — Common Issues &amp; Troubleshooting</h2>
+
+  <table>
+    <thead>
+      <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>EADDRINUSE :3000</code></td>
+        <td>nodemon/ts-node process still running</td>
+        <td><code>pkill -9 -f "nodemon|ts-node"</code> then restart</td>
+      </tr>
+      <tr>
+        <td>No Slack drafts appearing</td>
+        <td>xoxp- user token not connected</td>
+        <td>Visit <code>/slack/connect</code> in browser and authorise</td>
+      </tr>
+      <tr>
+        <td>Slack draft delivered but always for old messages</td>
+        <td><code>lastDMCheckAt</code> not updating in DB</td>
+        <td>Check Prisma update query in <code>slackDMPoller.ts</code></td>
+      </tr>
+      <tr>
+        <td>Email drafts showing for promotions</td>
+        <td>Filter not running / label not present</td>
+        <td>Check <code>shouldSkipEmail()</code> + <code>hasListUnsubscribe()</code> calls in emailPoller</td>
+      </tr>
+      <tr>
+        <td>Duplicate email drafts</td>
+        <td><code>processedEmail</code> table was cleared</td>
+        <td>Never delete processedEmail records. Dedup relies on them.</td>
+      </tr>
+      <tr>
+        <td><code>Missing Slack credentials</code> error</td>
+        <td><code>.env</code> values empty or wrong</td>
+        <td>Double-check SLACK_SIGNING_SECRET, APP_TOKEN, BOT_TOKEN</td>
+      </tr>
+      <tr>
+        <td>Channel poller finds 0 channels</td>
+        <td>User not member of any channels OR token scope missing</td>
+        <td>Ensure <code>channels:read</code> + <code>groups:read</code> scopes on the xoxp- token</td>
+      </tr>
+      <tr>
+        <td>GPT-4o returns empty reply</td>
+        <td>OpenAI API key invalid or quota exceeded</td>
+        <td>Check <code>OPENAI_API_KEY</code> in .env; verify at platform.openai.com</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub-title">Frequently Asked Questions</h3>
+
+  <div class="qa">
+    <div class="q">Does the bot ever send replies automatically without me seeing them?</div>
+    <div class="a">No. The bot only creates drafts and sends them to YOU via a private DM. It never sends anything to the original sender on your behalf.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What happens if the same message is detected by both the event handler and the channel poller?</div>
+    <div class="a">The deduplication system in <code>slackMessageService.ts</code> uses a unique <code>(messageTs, channelId)</code> constraint. The second attempt is silently skipped — only one draft is ever created per message.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">Can multiple users connect their own Gmail and Slack accounts?</div>
+    <div class="a">Yes. Each user authenticates via OAuth independently. Their tokens are stored per-user in the DB. The email poller loops over all connected users and processes each inbox separately.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">Why does the channel poller use an in-memory Map instead of the database for timestamps?</div>
+    <div class="a">Performance — checking the DB every 30 seconds for every channel would be expensive. The in-memory Map is fast and sufficient. On server restart, it falls back to <code>lastDMCheckAt</code> from the DB as a safe baseline.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How do I add a new email filter rule?</div>
+    <div class="a">Open <code>src/utils/emailUtils.ts</code> and add a regex to either <code>AUTOMATED_SENDER_PATTERNS</code> (for sender addresses) or <code>AUTOMATED_SUBJECT_PATTERNS</code> (for subject lines). No other changes needed.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How do I extend this to support Microsoft Teams or Outlook?</div>
+    <div class="a">Follow the same pattern: create a <code>teamsPoller.ts</code> for reading Teams messages (using Microsoft Graph API), a <code>teamsDraftHelper.ts</code> for AI generation and delivery, and add the poller to <code>index.ts</code>. The <code>generateEmailReply()</code> or <code>generateSlackReply()</code> AI function can be reused as-is.</div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SUMMARY / CLOSING PAGE
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="content-page">
+  <h2 class="page-title">📌 Quick Reference Summary</h2>
+
+  <div class="card-grid three">
+    <div class="card">
+      <div class="card-icon">🔑</div>
+      <div class="card-title">3 Slack Tokens</div>
+      <div class="card-body"><strong>xoxb-</strong> Bot (send)<br><strong>xoxp-</strong> User (read)<br><strong>xapp-</strong> Socket Mode</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⏱️</div>
+      <div class="card-title">Poll Intervals</div>
+      <div class="card-body">Email: <strong>1 minute</strong> (cron)<br>Slack DMs: <strong>30 seconds</strong><br>Slack Channels: <strong>30 seconds</strong></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛡️</div>
+      <div class="card-title">Dedup Layers</div>
+      <div class="card-body">Email: messageId + threadId<br>Slack: (messageTs, channelId) unique<br>Name cache for API efficiency</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <div class="card-title">AI Model</div>
+      <div class="card-body">OpenAI <strong>GPT-4o</strong><br>Max 300 tokens (Slack)<br>Max 500 tokens (Email)</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📁</div>
+      <div class="card-title">Core Files</div>
+      <div class="card-body">slackDraftHelper.ts<br>emailPoller.ts<br>emailUtils.ts</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗄️</div>
+      <div class="card-title">Key Tables</div>
+      <div class="card-body">SlackWorkspace<br>SlackDraft<br>ProcessedEmail · DraftLog</div>
+    </div>
+  </div>
+
+  <div class="highlight-box green" style="margin-top:24px;">
+    <strong>✅ System Status at Time of Training (May 18, 2026)</strong>
+    <ul>
+      <li>Gmail polling: <strong>Working</strong> — 30 unread emails, correct filtering, no duplicates</li>
+      <li>Slack DM drafts: <strong>Working</strong> — confirmed via live screenshots</li>
+      <li>Slack Channel drafts: <strong>Working</strong> — Channel poller live, no bot invite required</li>
+      <li>Connected Gmail user: <code>rushilpatellinux@gmail.com</code></li>
+      <li>Connected Slack user: <code>rushil patel</code> (U0B3RB0GBFC) — Workspace: AI assistant</li>
+    </ul>
+  </div>
+
+  <div style="text-align:center; margin-top:40px; padding-top:24px; border-top:2px solid #e2e6f0;">
+    <p style="font-size:11px; color:#aaa; margin-bottom:6px;">AI Email &amp; Slack Assistant — Internal Training Document</p>
+    <p style="font-size:11px; color:#aaa; margin-bottom:6px;">Prepared by <strong style="color:#0f3460;">Rushil Patel</strong> · Simform Solutions · May 18, 2026</p>
+    <p style="font-size:11px; color:#aaa;">Repository: <code>rushil-patel-simform / Slack-email-ai-assistance</code></p>
+  </div>
+</div>
+
+</div><!-- end .page -->
+
+<!-- ── Print button (hidden when printing) ─────────────────────── -->
+<div style="position:fixed; bottom:24px; right:24px; z-index:999;" class="no-print">
+  <button onclick="window.print()" style="
+    background: linear-gradient(135deg, #0f3460, #e94560);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(15,52,96,0.4);
+    font-family: 'Segoe UI', sans-serif;
+  ">🖨️ Print / Save as PDF</button>
+</div>
+
+<style>
+  @media print { .no-print { display: none !important; } }
+</style>
+
+</body>
+</html>

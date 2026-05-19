@@ -15,6 +15,7 @@ import { prisma } from '../db/prismaClient';
 import { config } from '../config';
 import { registerSlackEventHandlers, registerChannelMentionHandler } from './events/slackEventHandlers';
 import { startDMPoller, stopDMPoller } from './services/slackDMPoller';
+import { startChannelPoller, stopChannelPoller } from './services/slackChannelPoller';
 import { logger } from '../utils/logger';
 
 let boltApp: App | null = null;
@@ -70,6 +71,8 @@ export async function initSlackApp(): Promise<App> {
 
   // Start DM poller — polls every 30s for new DMs to connected users
   startDMPoller();
+  // Start Channel poller — polls every 30s for new channel messages
+  startChannelPoller();
 
   // Persist workspace info so our services can look up the bot user ID
   try {
@@ -106,6 +109,7 @@ export async function initSlackApp(): Promise<App> {
 export async function stopSlackApp(): Promise<void> {
   if (boltApp) {
     stopDMPoller();
+    stopChannelPoller();
     await boltApp.stop();
     boltApp = null;
     logger.info('Slack Bolt app stopped');

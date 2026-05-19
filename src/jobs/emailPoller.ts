@@ -9,7 +9,7 @@ import { logger } from '../utils/logger';
 import { gmail_v1 } from 'googleapis';
 
 /**
- * Checks for List-Unsubscribe header — a strong indicator of bulk/marketing email.
+ * List-Unsubscribe header = bulk/marketing mail. Real person-to-person emails never have it.
  */
 function hasListUnsubscribe(rawMessage: gmail_v1.Schema$Message): boolean {
   const headers = rawMessage.payload?.headers ?? [];
@@ -37,20 +37,41 @@ async function processEmailsForUser(userId: string): Promise<void> {
   const tokens = await getValidTokens(userId);
   const auth = getAuthenticatedClient(tokens.accessToken, tokens.refreshToken);
 
-  // Always fetch latest 10 unread only
-  const rawMessages = await fetchUnreadEmails(auth, 10);
+  // Always fetch latest 30 unread only
+  const rawMessages = await fetchUnreadEmails(auth, 30);
   logger.info(`Fetched ${rawMessages.length} unread messages for user ${userId}`);
 
   for (const rawMessage of rawMessages) {
     const messageId = rawMessage.id;
     if (!messageId) continue;
 
-    // Skip already-processed emails
+    // Skip already-processed emails (primary dedup — DB unique constraint on messageId)
     const alreadyProcessed = await prisma.processedEmail.findUnique({
       where: { messageId },
     });
     if (alreadyProcessed) {
       logger.debug(`Skipping already processed email: ${messageId}`);
+      continue;
+    }
+
+    // Secondary dedup — skip if a draft was already created for this thread
+    const existingDraft = await prisma.draftLog.findFirst({
+      where: { threadId: rawMessage.threadId ?? '', userId },
+    });
+    if (existingDraft) {
+      logger.debug(`Skipping — draft already exists for thread: ${rawMessage.threadId}`);
+      // Mark as processed so we don't check again
+      await prisma.processedEmail.create({
+        data: {
+          messageId,
+          threadId: rawMessage.threadId ?? messageId,
+          userId,
+          subject: '',
+          sender: '',
+          skipped: true,
+          skipReason: 'draft_already_exists_for_thread',
+        },
+      }).catch(() => {}); // ignore unique conflict
       continue;
     }
 
@@ -60,7 +81,7 @@ async function processEmailsForUser(userId: string): Promise<void> {
       continue;
     }
 
-    // Run comprehensive filter: labels + List-Unsubscribe + sender/subject patterns
+    // Run filter: Gmail labels + List-Unsubscribe header + sender/subject patterns
     const labels = getLabels(rawMessage);
     const listUnsub = hasListUnsubscribe(rawMessage);
     const filterResult = shouldSkipEmail(parsed.sender, parsed.subject, labels, listUnsub);

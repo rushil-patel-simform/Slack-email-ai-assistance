@@ -237,59 +237,53 @@ export function registerSlackEventHandlers(app: App): void {
   });
 }
 
-// ─── Channel message handler — detects @mentions of connected users ──────────
-// This is registered separately so we can scan ALL channel messages (not just bot mentions)
+// ─── Channel message handler — drafts for ALL channel messages ───────────────
 export function registerChannelMentionHandler(app: App): void {
   app.event('message', async ({ event, client, context }) => {
     const msg = event as any;
 
-    // Only channel messages (not DMs — those are handled by DM poller)
+    // Only channel/group messages (DMs handled by DM poller)
     if (msg.channel_type !== 'channel' && msg.channel_type !== 'group') return;
-    // Skip bots, system messages, empty
+    // Skip bots, system messages, empty text
     if (msg.bot_id || msg.subtype || !msg.text?.trim()) return;
 
     const teamId = (context.teamId as string) ?? '';
-    const text: string = msg.text ?? '';
 
-    // Find all <@USER_ID> mentions in the message
-    const mentionPattern = /<@(U[A-Z0-9]+)>/g;
-    const mentionedIds = [...text.matchAll(mentionPattern)].map(m => m[1]);
-    if (mentionedIds.length === 0) return;
+    // Find the connected workspace owner
+    const workspace = await (prisma as any).slackWorkspace.findFirst({
+      where: { teamId, userToken: { not: null } },
+    });
+    if (!workspace) return;
 
-    // For each mentioned user, check if they have connected (have a userToken)
-    for (const mentionedUserId of mentionedIds) {
-      const workspace = await (prisma as any).slackWorkspace.findFirst({
-        where: { teamId, slackUserId: mentionedUserId, userToken: { not: null } },
-      });
-      if (!workspace) continue;
+    // Don't draft for messages sent by the owner themselves
+    if (msg.user === workspace.slackUserId) return;
 
-      logger.info('🔔 Channel @mention of connected user detected', {
-        mentionedUserId, from: msg.user, channel: msg.channel,
-      });
+    logger.info('🔔 Channel message — generating draft for owner', {
+      from: msg.user, channel: msg.channel, text: msg.text?.slice(0, 80),
+    });
 
-      const botClient  = new WebClient(workspace.botToken);
-      const userClient = new WebClient(workspace.userToken);
+    const botClient  = new WebClient(workspace.botToken);
+    const userClient = new WebClient(workspace.userToken);
 
-      // Get owner name
-      let ownerName = mentionedUserId;
-      try {
-        const info = await userClient.users.info({ user: mentionedUserId });
-        ownerName = (info.user as any)?.real_name ?? (info.user as any)?.name ?? ownerName;
-      } catch {}
+    // Get owner name
+    let ownerName = workspace.slackUserId ?? 'User';
+    try {
+      const info = await userClient.users.info({ user: workspace.slackUserId });
+      ownerName = (info.user as any)?.real_name ?? (info.user as any)?.name ?? ownerName;
+    } catch {}
 
-      await generateAndDeliverDraft({
-        botClient,
-        historyClient:    client,   // bot can read channel history if it's in the channel
-        teamId,
-        channelId:        msg.channel,
-        messageTs:        msg.ts,
-        threadTs:         msg.thread_ts,
-        fromUserId:       msg.user ?? '',
-        text,
-        channelType:      msg.channel_type === 'group' ? 'mpim' : 'channel',
-        recipientSlackId: mentionedUserId,
-        ownerName,
-      });
-    }
+    await generateAndDeliverDraft({
+      botClient,
+      historyClient:    client,
+      teamId,
+      channelId:        msg.channel,
+      messageTs:        msg.ts,
+      threadTs:         msg.thread_ts,
+      fromUserId:       msg.user ?? '',
+      text:             msg.text,
+      channelType:      msg.channel_type === 'group' ? 'mpim' : 'channel',
+      recipientSlackId: workspace.slackUserId,
+      ownerName,
+    });
   });
 }

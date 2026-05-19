@@ -1,83 +1,57 @@
 /**
- * Patterns that indicate automated / no-reply senders that should be skipped.
+ * Only truly un-repliable automated senders (no-reply, mailer daemons, etc.)
+ * Kept intentionally narrow — real people at companies should NOT be skipped.
  */
 const AUTOMATED_SENDER_PATTERNS: RegExp[] = [
   /no[-_.]?reply/i,
   /noreply/i,
   /do[-_.]?not[-_.]?reply/i,
-  /notifications?@/i,
-  /automated@/i,
   /mailer[-_.]?daemon/i,
   /postmaster@/i,
   /bounce[sd]?@/i,
+  /automated@/i,
+  // Bulk/newsletter sender address patterns
+  /news@/i,
   /newsletter@/i,
+  /notifications?@/i,
   /updates?@/i,
   /alerts?@/i,
-  /support-noreply/i,
-  /feedback@/i,
-  // Marketing / bulk senders
   /promotions?@/i,
   /marketing@/i,
-  /info@/i,
-  /hello@/i,
-  /news@/i,
   /digest@/i,
-  /weekly@/i,
-  /monthly@/i,
-  /deals?@/i,
-  /offers?@/i,
-  /notify@/i,
-  /admin@/i,
-  /system@/i,
-  /team@/i,
-  /hello@/i,
+  /bulk@/i,
 ];
 
 /**
- * Common automated / promotional subject line patterns.
+ * Only clearly bulk/system subject lines that nobody expects a human reply to.
  */
 const AUTOMATED_SUBJECT_PATTERNS: RegExp[] = [
-  /unsubscribe/i,
-  /your (order|receipt|invoice|subscription)/i,
-  /account (created|activated|verified|suspended)/i,
-  /password (reset|changed|expir)/i,
-  /verify your (email|account)/i,
-  /welcome to/i,
   /\[automated\]/i,
   /delivery (notification|status|update)/i,
-  // Promotional
   /\d+% off/i,
   /limited time offer/i,
   /flash sale/i,
-  /exclusive deal/i,
   /don't miss out/i,
   /act now/i,
   /special offer/i,
   /get \d+% (off|discount)/i,
-  // GitHub / CI / release notifications
-  /\[GitHub\]/i,
-  /new release:/i,
-  /security advisory/i,
-  /dependabot/i,
   /build (passed|failed|succeeded)/i,
-  /ci (passed|failed)/i,
   /pipeline (passed|failed)/i,
-  // Newsletters
-  /newsletter/i,
-  /digest/i,
-  /weekly (round)?up/i,
-  /issue #\d+/i,
-  /vol\.\s*\d+/i,
+  /dependabot/i,
+  /security advisory/i,
+  // Product recommendation / shopping emails
+  /finds for you/i,
+  /recommended for you/i,
+  /hot deals/i,
+  /buy now/i,
 ];
 
 /**
- * Gmail category labels that indicate non-important mail.
+ * Skip CATEGORY_PROMOTIONS (Gmail's own ML classifier) — very reliable for ads.
+ * Do NOT skip CATEGORY_UPDATES or CATEGORY_SOCIAL — real emails land there too.
  */
 const SKIP_LABEL_PATTERNS: RegExp[] = [
   /^CATEGORY_PROMOTIONS$/,
-  /^CATEGORY_SOCIAL$/,
-  /^CATEGORY_UPDATES$/,
-  /^CATEGORY_FORUMS$/,
   /^SPAM$/,
 ];
 

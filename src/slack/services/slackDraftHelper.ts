@@ -144,32 +144,35 @@ export async function generateAndDeliverDraft(params: {
     },
   });
 
-  // Send draft as private DM to the recipient (the connected user)
+  // ── Deliver the draft as a bot DM to the recipient ───────────────────────
   const locationLabel =
     channelType === 'im'   ? 'Direct Message' :
     channelType === 'mpim' ? 'Group DM' :
     `<#${channelId}>`;
 
-  const threadLabel  = threadTs && threadTs !== messageTs ? ' _(in thread)_' : '';
-  const contextNote  = conversationHistory.length > 0
-    ? `_AI used ${conversationHistory.length} previous messages${threadHistory.length > 0 ? ` + ${threadHistory.length} thread replies` : ''} as context._`
+  const contextNote = conversationHistory.length > 0
+    ? `AI used ${conversationHistory.length} previous messages${threadHistory.length > 0 ? ` + ${threadHistory.length} thread replies` : ''} as context.`
     : '';
+
+  const threadLabel = threadTs && threadTs !== messageTs ? ' _(in thread)_' : '';
 
   const draftMessage =
     `📝 *New draft ready* — ${locationLabel}${threadLabel}\n` +
     `*From:* ${senderName}\n` +
     `*Their message:* _"${text.slice(0, 250)}${text.length > 250 ? '…' : ''}"_\n` +
-    `${contextNote}\n\n` +
-    `*Suggested reply for you to send:*\n` +
-    `>>>${draftText}\n\n` +
+    (contextNote ? `${contextNote}\n` : '') +
+    `\n*Suggested reply for you to send:*\n` +
+    `>${draftText}\n\n` +
     `_Copy the reply above → go to ${locationLabel} → paste and send it yourself._`;
 
   try {
     const dmResult = await botClient.conversations.open({ users: recipientSlackId });
     const dmChannelId = (dmResult.channel as any)?.id;
     if (dmChannelId) {
-      await botClient.chat.postMessage({ channel: dmChannelId, text: draftMessage, mrkdwn: true });
-      logger.info('✅ Draft sent to recipient via private DM', { recipientSlackId, from: senderName });
+      await botClient.chat.postMessage({ channel: dmChannelId, text: draftMessage });
+      logger.info('✅ Draft sent to recipient via bot DM', { recipientSlackId, dmChannelId, from: senderName });
+    } else {
+      logger.error('conversations.open returned no channel', { dmResult });
     }
   } catch (err) {
     logger.error('Failed to send draft DM', { err: String(err), recipientSlackId });
